@@ -1,0 +1,924 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mi Ruta Saludable</title>
+<style>
+  :root{
+    --bg:#f5f8ef;
+    --card:#ffffff;
+    --ink:#263238;
+    --muted:#64748b;
+    --primary:#2f7d5a;
+    --primary-dark:#245f44;
+    --accent:#f4b942;
+    --blue:#4a90a4;
+    --danger:#c85b5b;
+    --success:#33845e;
+    --shadow:0 14px 35px rgba(39,64,50,.10);
+    --radius:22px;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0;
+    font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    color:var(--ink);
+    background:
+      radial-gradient(circle at 10% 10%, rgba(255,255,255,.9), transparent 25%),
+      linear-gradient(180deg,#edf6ed 0%, #f8f7ee 48%, #eef5f3 100%);
+    min-height:100vh;
+  }
+  button,input,textarea{font:inherit}
+  button{cursor:pointer}
+  .app{max-width:1180px;margin:0 auto;padding:20px}
+  .topbar{
+    position:sticky;top:10px;z-index:10;background:rgba(255,255,255,.9);
+    backdrop-filter:blur(14px);border:1px solid rgba(47,125,90,.12);
+    box-shadow:var(--shadow);border-radius:18px;padding:12px 16px;
+    margin-bottom:18px;
+  }
+  .topbar-row{display:flex;gap:14px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+  .brand-mini{font-weight:800;color:var(--primary-dark)}
+  .stats{display:flex;gap:10px;flex-wrap:wrap;font-size:.92rem}
+  .pill{background:#eef6f0;border-radius:999px;padding:8px 12px;font-weight:700}
+  .pill.gold{background:#fff4cf}
+  .progress-wrap{margin-top:10px}
+  .progress-label{display:flex;justify-content:space-between;color:var(--muted);font-size:.82rem;margin-bottom:5px}
+  .progress{height:11px;border-radius:999px;background:#e5ebe4;overflow:hidden}
+  .progress > div{height:100%;background:linear-gradient(90deg,var(--primary),#5cac84);width:0;transition:width .45s}
+  .screen{display:none}
+  .screen.active{display:block}
+  .hero{
+    min-height:calc(100vh - 160px);display:grid;grid-template-columns:1.1fr .9fr;
+    gap:22px;align-items:center;
+  }
+  .hero-copy,.hero-art{
+    background:rgba(255,255,255,.88);border:1px solid rgba(47,125,90,.12);
+    border-radius:30px;box-shadow:var(--shadow)
+  }
+  .hero-copy{padding:42px}
+  .eyebrow{display:inline-flex;gap:7px;align-items:center;background:#edf7ef;color:var(--primary-dark);font-weight:800;padding:8px 13px;border-radius:999px}
+  h1{font-size:clamp(2.6rem,6vw,5.4rem);line-height:.96;margin:18px 0 12px;letter-spacing:-.05em}
+  h2{font-size:clamp(1.7rem,3vw,2.5rem);margin:0 0 12px;letter-spacing:-.03em}
+  h3{margin:0 0 8px}
+  p{line-height:1.65}
+  .subtitle{font-size:1.15rem;color:var(--muted);max-width:650px}
+  .hero-art{padding:28px;min-height:420px;display:flex;align-items:center;justify-content:center}
+  .journey-art{width:min(100%,460px)}
+  .journey-circle{fill:#ffffff;stroke:#2f7d5a;stroke-width:7}
+  .journey-dot{fill:#f4b942}
+  .journey-line{stroke:#5cac84;stroke-width:10;stroke-linecap:round;stroke-dasharray:1 24}
+  .route-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:18px}
+  .route-chip{
+    padding:12px;background:#f8fbf8;border-radius:16px;border:1px solid #e4eee6;
+    text-align:center;font-weight:750;font-size:.9rem
+  }
+  .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:26px}
+  label{display:block;font-weight:800;font-size:.93rem}
+  input[type="text"],textarea{
+    width:100%;border:1px solid #d7e1d9;background:#fbfdfb;border-radius:14px;
+    padding:12px 14px;margin-top:7px;outline:none
+  }
+  input:focus,textarea:focus{border-color:#6aac86;box-shadow:0 0 0 4px rgba(92,172,132,.12)}
+  textarea{min-height:100px;resize:vertical}
+  .grade-buttons{display:flex;gap:10px;margin-top:8px}
+  .grade-btn{
+    flex:1;border:1px solid #cddbd0;background:#fff;padding:12px;border-radius:14px;
+    font-weight:850;color:var(--primary-dark)
+  }
+  .grade-btn.selected{background:#2f7d5a;color:#fff;border-color:#2f7d5a}
+  .btn{
+    border:0;border-radius:14px;padding:12px 18px;font-weight:850;transition:.2s;
+    box-shadow:0 5px 16px rgba(36,95,68,.10)
+  }
+  .btn:hover{transform:translateY(-1px)}
+  .btn-primary{background:var(--primary);color:#fff}
+  .btn-secondary{background:#eef4ef;color:var(--primary-dark)}
+  .btn-gold{background:var(--accent);color:#4a3b10}
+  .btn-danger{background:#fff0f0;color:#9c3d3d;border:1px solid #f0cccc}
+  .actions{display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap;margin-top:20px}
+  .route-layout{display:grid;grid-template-columns:280px 1fr;gap:18px}
+  .side-card,.main-card{
+    background:rgba(255,255,255,.93);border-radius:24px;box-shadow:var(--shadow);
+    border:1px solid rgba(47,125,90,.10)
+  }
+  .side-card{padding:18px;position:sticky;top:104px;height:max-content}
+  .profile-mini{padding-bottom:14px;border-bottom:1px solid #e7eee8;margin-bottom:14px}
+  .mini-name{font-size:1.15rem;font-weight:900}
+  .station-list{display:grid;gap:8px}
+  .station-item{
+    border:1px solid #e3ece5;background:#fbfdfb;border-radius:14px;padding:12px;
+    display:flex;gap:10px;align-items:center
+  }
+  .station-item.locked{opacity:.55}
+  .station-item.active{border-color:#6aaf88;background:#eff8f1}
+  .station-item.done{background:#eef8f1}
+  .station-badge{font-size:1.55rem}
+  .badge-mini{
+    margin-top:14px;background:#fbf8e9;border-radius:16px;padding:12px;border:1px solid #f0e5bb
+  }
+  .main-card{padding:26px}
+  .story{
+    background:linear-gradient(135deg,#f2faf2,#fdfbf0);padding:18px;border-radius:18px;
+    border:1px solid #e0ebe1;margin-bottom:18px
+  }
+  .mission-head{display:flex;justify-content:space-between;gap:15px;align-items:flex-start;flex-wrap:wrap}
+  .mission-tag{background:#edf7ef;color:var(--primary-dark);padding:7px 10px;border-radius:999px;font-weight:850;font-size:.8rem}
+  .question{
+    border:1px solid #e4ebe5;border-radius:18px;padding:18px;margin:14px 0;background:#fff
+  }
+  .question-number{font-size:.78rem;color:var(--muted);font-weight:800}
+  .question-title{font-weight:850;font-size:1.05rem;margin:5px 0 12px;line-height:1.5}
+  .option{
+    width:100%;text-align:left;border:1px solid #dce6de;background:#fafcfb;
+    padding:12px 14px;border-radius:13px;margin-top:8px;display:flex;gap:10px;
+    align-items:flex-start;transition:.18s
+  }
+  .option:hover{border-color:#76ae8d;background:#f2faf4}
+  .option:disabled{cursor:default}
+  .option .letter{
+    min-width:28px;height:28px;border-radius:50%;display:grid;place-items:center;
+    background:#edf2ee;font-weight:900;color:#4c5b53
+  }
+  .option.correct{border-color:#7ab696;background:#eef9f1}
+  .option.correct .letter{background:#33845e;color:#fff}
+  .option.wrong{border-color:#d98b8b;background:#fff3f3}
+  .option.wrong .letter{background:#c85b5b;color:#fff}
+  .feedback{
+    margin-top:12px;padding:13px 14px;border-radius:14px;line-height:1.55;
+    display:none
+  }
+  .feedback.show{display:block}
+  .feedback.good{background:#edf8f0;border:1px solid #bfe0ca}
+  .feedback.bad{background:#fff3f3;border:1px solid #efc3c3}
+  .feedback strong{display:block;margin-bottom:4px}
+  .open-response{
+    border:1px solid #e4ebe5;border-radius:18px;padding:18px;background:#fbfdfb;margin-top:16px
+  }
+  .open-response small{color:var(--muted)}
+  .station-complete{
+    margin-top:18px;padding:16px;border-radius:18px;background:#f8fbf8;border:1px dashed #9cc1a8
+  }
+  .earned{
+    margin-top:18px;background:linear-gradient(135deg,#fff9da,#f8fff8);
+    border:1px solid #eadb9a;border-radius:20px;padding:20px;text-align:center
+  }
+  .earned .big-badge{font-size:3.5rem}
+  .modal{
+    position:fixed;inset:0;background:rgba(19,33,24,.55);display:none;z-index:50;
+    align-items:center;justify-content:center;padding:18px
+  }
+  .modal.show{display:flex}
+  .modal-card{max-width:520px;width:100%;background:#fff;border-radius:24px;padding:24px;box-shadow:0 25px 70px rgba(0,0,0,.22)}
+  .final-wrap{max-width:1080px;margin:0 auto}
+  .evidence{
+    background:#fff;border:3px solid #d6e8d9;border-radius:26px;box-shadow:var(--shadow);
+    padding:24px
+  }
+  .evidence-head{display:flex;justify-content:space-between;gap:18px;align-items:flex-start;flex-wrap:wrap}
+  .evidence-title h1{font-size:clamp(2rem,4vw,3.5rem);margin:0}
+  .stamp{border:2px solid var(--primary);color:var(--primary-dark);border-radius:16px;padding:12px;text-align:center;font-weight:900;background:#f5fbf5}
+  .evidence-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:18px}
+  .summary-card{border:1px solid #e4ebe5;border-radius:18px;padding:16px;background:#fcfefc}
+  .station-results{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+  .station-result{padding:12px;border-radius:14px;background:#f3f8f4;border:1px solid #e1ece3}
+  .badges{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+  .badge-card{border:1px solid #eadfb6;border-radius:16px;padding:12px;text-align:center;background:#fffaf0}
+  .badge-card .icon{font-size:2.3rem}
+  .personal-route{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+  .personal-item{border-left:5px solid #7db493;background:#f7faf7;padding:12px;border-radius:11px}
+  .personal-item strong{display:block;margin-bottom:4px}
+  .commitment{margin-top:10px;padding:15px;background:#eef8f0;border-radius:15px;border:1px solid #cce3d2}
+  .code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-weight:900;letter-spacing:.08em}
+  .evidence-actions{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:18px}
+  .only-evidence .hide-on-evidence{display:none!important}
+  .only-evidence .evidence{box-shadow:none}
+  .toast{
+    position:fixed;right:18px;bottom:18px;z-index:70;max-width:380px;background:#21352a;color:white;
+    padding:13px 16px;border-radius:14px;box-shadow:0 12px 30px rgba(0,0,0,.20);display:none
+  }
+  .toast.show{display:block}
+  .muted{color:var(--muted)}
+  .center{text-align:center}
+  .tiny{font-size:.82rem}
+  @media(max-width:900px){
+    .hero,.route-layout{grid-template-columns:1fr}
+    .side-card{position:static}
+    .evidence-grid{grid-template-columns:1fr}
+  }
+  @media(max-width:640px){
+    .app{padding:12px}
+    .hero-copy{padding:26px}
+    .form-grid,.route-grid,.station-results,.personal-route{grid-template-columns:1fr}
+    .badges{grid-template-columns:repeat(2,1fr)}
+    .main-card{padding:18px}
+    .actions{justify-content:stretch}
+    .actions .btn{flex:1}
+  }
+  @media print{
+    body{background:#fff}
+    .topbar,.evidence-actions{display:none!important}
+    .app{max-width:none;padding:0}
+    .evidence{border:0;box-shadow:none}
+  }
+</style>
+</head>
+<body>
+<div class="app" id="app">
+
+  <div class="topbar hide-on-evidence" id="topbar" style="display:none">
+    <div class="topbar-row">
+      <div class="brand-mini">🌱 Mi Ruta Saludable</div>
+      <div class="stats">
+        <span class="pill" id="profilePill">👤 —</span>
+        <span class="pill" id="gradePill">🎒 —</span>
+        <span class="pill gold" id="scorePill">⭐ 0 pts</span>
+      </div>
+    </div>
+    <div class="progress-wrap">
+      <div class="progress-label"><span id="progressText">Misión 1 de 6</span><span id="percentText">0%</span></div>
+      <div class="progress"><div id="progressBar"></div></div>
+    </div>
+  </div>
+
+  <!-- START -->
+  <section class="screen active" id="startScreen">
+    <div class="hero">
+      <div class="hero-copy">
+        <span class="eyebrow">🌱 AVENTURA EDUCATIVA · EDUCACIÓN FÍSICA</span>
+        <h1>Mi Ruta<br>Saludable</h1>
+        <p class="subtitle">Una aventura para descubrir cómo cuido mi cuerpo, mi mente y mis hábitos.</p>
+        <p>Tu cuerpo es como un gran equipo: necesita movimiento, alimentación, hidratación, descanso, higiene y bienestar emocional para funcionar de la mejor manera posible.</p>
+        <p><strong>Hoy tienes una misión:</strong> recorrer seis estaciones, superar desafíos, aprender de tus respuestas y construir tu propia ruta saludable.</p>
+
+        <div class="form-grid">
+          <label>Nombre del estudiante
+            <input id="studentName" type="text" placeholder="Escribe tu nombre">
+          </label>
+          <div>
+            <label>Grado</label>
+            <div class="grade-buttons">
+              <button class="grade-btn" data-grade="4">4.º</button>
+              <button class="grade-btn" data-grade="5">5.º</button>
+            </div>
+          </div>
+        </div>
+        <div class="actions">
+          <button class="btn btn-primary" id="startBtn">🚀 Comenzar mi aventura</button>
+          <button class="btn btn-secondary" id="resumeBtn" style="display:none">↩️ Continuar aventura guardada</button>
+        </div>
+        <p class="tiny muted">Tu progreso se guarda en este dispositivo para que puedas continuar si cierras o actualizas la página.</p>
+      </div>
+
+      <div class="hero-art">
+        <div class="journey-art">
+          <svg viewBox="0 0 520 430" role="img" aria-label="Mapa de una ruta saludable">
+            <rect x="20" y="20" width="480" height="390" rx="35" fill="#f3f8f0"/>
+            <path class="journey-line" d="M70 325 C130 260, 130 150, 210 125 S340 85, 425 135 S455 285, 370 335 S195 335, 90 205"/>
+            <circle class="journey-circle" cx="70" cy="325" r="42"/>
+            <circle class="journey-circle" cx="210" cy="125" r="42"/>
+            <circle class="journey-circle" cx="425" cy="135" r="42"/>
+            <circle class="journey-circle" cx="370" cy="335" r="42"/>
+            <circle class="journey-circle" cx="90" cy="205" r="42"/>
+            <text x="70" y="335" text-anchor="middle" font-size="32">🥗</text>
+            <text x="210" y="135" text-anchor="middle" font-size="32">💧</text>
+            <text x="425" y="145" text-anchor="middle" font-size="32">🏃</text>
+            <text x="370" y="345" text-anchor="middle" font-size="32">😴</text>
+            <text x="90" y="215" text-anchor="middle" font-size="32">❤️</text>
+            <text x="258" y="255" text-anchor="middle" font-size="44">🌟</text>
+            <text x="260" y="300" text-anchor="middle" font-size="22" font-weight="800" fill="#245f44">¡Tu aventura comienza!</text>
+          </svg>
+          <div class="route-grid">
+            <div class="route-chip">🥗 Alimentación</div>
+            <div class="route-chip">💧 Hidratación</div>
+            <div class="route-chip">🏃 Movimiento</div>
+            <div class="route-chip">😴 Descanso</div>
+            <div class="route-chip">❤️ Emociones</div>
+            <div class="route-chip">🌟 Mi ruta</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ADVENTURE -->
+  <section class="screen" id="adventureScreen">
+    <div class="route-layout">
+      <aside class="side-card">
+        <div class="profile-mini">
+          <div class="tiny muted">AVENTURERO/A</div>
+          <div class="mini-name" id="sideName">—</div>
+          <div class="muted" id="sideGrade">—</div>
+        </div>
+
+        <h3>🗺️ Mi recorrido</h3>
+        <div class="station-list" id="stationList"></div>
+
+        <div class="badge-mini">
+          <strong>🏅 Mis insignias</strong>
+          <div class="tiny muted" style="margin-top:5px">Desbloquea una en cada misión.</div>
+          <div id="badgeCount" style="margin-top:7px;font-weight:900">0 / 6</div>
+        </div>
+      </aside>
+
+      <main class="main-card" id="mainCard"></main>
+    </div>
+  </section>
+
+  <!-- FINAL -->
+  <section class="screen" id="finalScreen">
+    <div class="final-wrap">
+      <div class="evidence" id="evidenceCard"></div>
+    </div>
+  </section>
+</div>
+
+<div class="modal" id="confirmModal">
+  <div class="modal-card">
+    <h2>¿Reiniciar la aventura?</h2>
+    <p>Se borrará el progreso guardado en este dispositivo y comenzarás de nuevo.</p>
+    <div class="actions">
+      <button class="btn btn-secondary" id="cancelReset">Cancelar</button>
+      <button class="btn btn-danger" id="confirmReset">Sí, reiniciar</button>
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const STATIONS = [
+  {
+    id:"food", icon:"🥗", title:"La estación de la alimentación",
+    badge:"🥗", badgeName:"Explorador/a de la Alimentación",
+    intro:"El camino comienza y encuentras una mochila vacía. Para continuar necesitas llenarla con decisiones que ayuden a cuidar tu cuerpo.",
+    story:"En esta estación descubrirás que alimentarte bien no significa comer siempre lo mismo: significa aprender a variar tus alimentos y tomar decisiones que aporten al bienestar.",
+    openPrompts:[
+      {key:"food_like", label:"Escribe un alimento saludable que te guste y explica por qué lo elegirías."}
+    ],
+    questions:{
+      4:[
+        {
+          q:"¿Cuál opción representa un hábito de alimentación saludable?",
+          opts:["Comer una variedad de alimentos, incluyendo frutas y verduras.","Comer solamente los alimentos que más me gustan.","Saltarme comidas para no tener hambre más tarde.","Consumir productos ultraprocesados en todas las comidas."],
+          ans:0, explain:"Variar los alimentos permite incluir diferentes nutrientes y favorece una alimentación más equilibrada."
+        },
+        {
+          q:"Para una merienda escolar, ¿cuál opción puede aportar una combinación más nutritiva?",
+          opts:["Fruta y agua.","Solo dulces y gaseosa.","Papas fritas y bebida azucarada.","Solo una golosina porque es más rápida."],
+          ans:0, explain:"Una fruta puede aportar nutrientes y agua; acompañarla con agua es una opción sencilla para una merienda."
+        },
+        {
+          q:"¿Por qué es importante no basar la alimentación en un solo tipo de comida?",
+          opts:["Porque el cuerpo necesita diferentes nutrientes.","Porque todos los alimentos saben igual.","Porque así nunca debemos probar comidas nuevas.","Porque comer variedad evita necesitar agua."],
+          ans:0, explain:"Diferentes alimentos aportan diferentes nutrientes, por eso la variedad es importante."
+        },
+        {
+          q:"Si un compañero dice que una alimentación saludable significa 'nunca comer nada que me guste', ¿qué idea sería más adecuada?",
+          opts:["Una alimentación saludable puede incluir variedad y equilibrio, sin pensar en un solo alimento como 'prohibido'.","Tiene razón: los alimentos que gustan siempre son poco saludables.","La mejor opción es dejar de comer una de las comidas del día.","Solo debemos comer alimentos de color verde."],
+          ans:0, explain:"El objetivo es aprender hábitos equilibrados y variados, no reducir la alimentación a reglas extremas."
+        }
+      ],
+      5:[
+        {
+          q:"En una semana, Laura suele desayunar solo productos muy azucarados y a veces salta el desayuno. ¿Qué cambio sería más razonable?",
+          opts:["Crear una rutina de desayuno variado y regular, incluyendo alimentos nutritivos.","Eliminar completamente el desayuno para comer menos durante el día.","Comer exactamente lo mismo todos los días.","Cambiar todos sus alimentos por suplementos."],
+          ans:0, explain:"Una rutina regular y variada facilita que la alimentación incluya diferentes nutrientes y horarios de comida."
+        },
+        {
+          q:"Dos meriendas tienen calorías similares. Una incluye fruta, un alimento fuente de proteína y agua; la otra incluye principalmente dulces y una bebida azucarada. ¿Qué diferencia es más importante analizar?",
+          opts:["Los alimentos aportan nutrientes diferentes, no solo importa contar calorías.","La segunda siempre es mejor porque tiene sabor dulce.","Las dos son idénticas porque tienen calorías similares.","La primera no puede ser saludable porque contiene más de un alimento."],
+          ans:0, explain:"La calidad y variedad de los alimentos también importa: los nutrientes y el contexto del hábito son relevantes."
+        },
+        {
+          q:"Un estudiante quiere mejorar su alimentación, pero dice: 'Voy a cambiar todo desde mañana'. ¿Cuál estrategia puede ser más sostenible?",
+          opts:["Elegir uno o dos hábitos concretos y mantenerlos de manera constante.","Eliminar todos sus alimentos favoritos de un día para otro.","No comer entre semana y compensarlo el fin de semana.","Cambiar de dieta cada pocos días."],
+          ans:0, explain:"Los cambios concretos y realistas suelen ser más fáciles de practicar de forma constante."
+        },
+        {
+          q:"¿Qué afirmación describe mejor una alimentación equilibrada?",
+          opts:["Busca variedad, moderación y alimentos que aporten diferentes nutrientes, adaptándose a las necesidades de la persona.","Consiste en comer solo alimentos considerados 'perfectos'.","Significa evitar cualquier alimento que tenga azúcar o grasa.","Es exactamente la misma para todas las personas."],
+          ans:0, explain:"La alimentación saludable no es idéntica para todas las personas; importa la variedad y el equilibrio dentro de las necesidades individuales."
+        },
+        {
+          q:"Después de identificar que casi nunca consume frutas, Diego decide empezar agregando una porción a una merienda diaria. ¿Qué está haciendo principalmente?",
+          opts:["Estableciendo un objetivo concreto y alcanzable para mejorar un hábito.","Haciendo una dieta extrema.","Eliminando la necesidad de consumir otros alimentos.","Sustituyendo el descanso por alimentación."],
+          ans:0, explain:"Convertir una intención general en una acción concreta facilita practicar y observar el nuevo hábito."
+        }
+      ]
+    },
+    english:{
+      q:"Choose the healthiest sentence.",
+      opts:["I drink water every day.","I drink exercise every day.","I sleep a water every day.","I run healthy water every day."],
+      ans:0, explain:"'I drink water every day' is the correct sentence and uses the verb drink with water."
+    }
+  },
+  {
+    id:"water", icon:"💧", title:"El río de la hidratación",
+    badge:"💧", badgeName:"Guardián/a del Agua",
+    intro:"Después de caminar, llegas a un río. Tu cuerpo necesita agua para continuar el recorrido.",
+    story:"Aquí aprenderás a reconocer cuándo tu cuerpo necesita líquidos y por qué hidratarte es especialmente importante cuando realizas actividad física.",
+    openPrompts:[
+      {key:"water_when", label:"¿En qué momentos del día recuerdas tomar agua? Escribe algunos."},
+      {key:"water_idea", label:"Escribe una idea que podría ayudarte a recordar tomar agua durante el día."}
+    ],
+    questions:{
+      4:[
+        {q:"Durante una actividad física, ¿por qué es importante prestar atención a la hidratación?",opts:["Porque el cuerpo necesita líquidos para funcionar adecuadamente.","Porque beber agua reemplaza el calentamiento.","Porque así nunca necesitamos descansar.","Porque tomar agua hace que todas las actividades sean más fáciles."],ans:0,explain:"El cuerpo necesita líquidos para mantener funciones normales, y durante la actividad física debemos prestar atención a la hidratación."},
+        {q:"Si tienes sed después de jugar, ¿qué opción es una buena elección cotidiana?",opts:["Agua.","Una bebida energética como primera opción siempre.","No beber nada.","Solo comer dulces."],ans:0,explain:"El agua es una opción sencilla para hidratarse en la vida cotidiana."},
+        {q:"¿Qué hábito puede facilitar que recuerdes beber agua en el colegio?",opts:["Llevar una botella reutilizable y hacer pausas para beber.","Esperar hasta sentirte muy cansado siempre.","Evitar el agua durante las clases.","Beber solo al final de la semana."],ans:0,explain:"Tener agua disponible y establecer momentos para beber puede ayudar a convertirlo en un hábito."},
+        {q:"¿Cuál afirmación es más adecuada?",opts:["Las necesidades de hidratación pueden variar según la persona, el clima y la actividad.","Todas las personas necesitan exactamente la misma cantidad de agua.","Solo necesitamos líquidos cuando hacemos deporte.","La sed nunca es una señal que debamos escuchar."],ans:0,explain:"La hidratación depende de varios factores y es importante prestar atención a las necesidades del cuerpo."}
+      ],
+      5:[
+        {q:"Camila hace actividad física en un día caluroso y termina con mucha sed. ¿Cuál decisión muestra mejor autocuidado?",opts:["Hacer una pausa, beber agua y atender las señales de su cuerpo.","Ignorar la sed para terminar más rápido.","Tomar cualquier bebida azucarada como única opción.","Seguir haciendo ejercicio sin descansar nunca."],ans:0,explain:"En un día caluroso y activo aumenta la importancia de atender las señales corporales y mantener una hidratación adecuada."},
+        {q:"¿Por qué una botella de agua puede ayudar a construir un hábito?",opts:["Porque hace que el agua esté disponible y permite asociarla con momentos de la rutina.","Porque obliga a beber una cantidad idéntica a todas las personas.","Porque reemplaza cualquier alimento.","Porque evita la necesidad de pausas."],ans:0,explain:"Tener agua disponible reduce una barrera práctica y puede ayudar a incorporar la hidratación a la rutina."},
+        {q:"Un estudiante toma bebidas azucaradas varias veces al día y casi no toma agua. ¿Qué cambio gradual sería razonable?",opts:["Aumentar el consumo de agua y reducir poco a poco la frecuencia de bebidas azucaradas.","Dejar de beber líquidos por completo.","Tomar solo bebidas energéticas.","Beber agua únicamente durante el ejercicio."],ans:0,explain:"Aumentar agua y reducir gradualmente una bebida que se consume con mucha frecuencia puede ser un cambio de hábito razonable."},
+        {q:"¿Cuál situación puede aumentar la necesidad de prestar atención a la hidratación?",opts:["Realizar actividad física intensa en un ambiente caluroso.","Leer sentado en una biblioteca fresca durante poco tiempo.","Dormir ocho horas en una noche fresca.","Ver una película en casa."],ans:0,explain:"El calor y la actividad física pueden aumentar la pérdida de líquidos y hacen más importante cuidar la hidratación."},
+        {q:"¿Qué idea explica mejor por qué la hidratación forma parte de una vida activa?",opts:["Porque el agua participa en funciones del cuerpo que necesitamos tanto en reposo como durante el movimiento.","Porque beber agua hace innecesario comer.","Porque hidratarse reemplaza el descanso.","Porque solo los deportistas necesitan agua."],ans:0,explain:"El agua es necesaria para funciones corporales y por eso forma parte del cuidado diario de todas las personas."}
+      ]
+    },
+    english:{q:"Choose the best option: 'After exercise, I ______ water.'",opts:["drink","jump","sleep","stretch"],ans:0,explain:"The verb 'drink' is used with water: 'After exercise, I drink water.'"}
+  },
+  {
+    id:"move", icon:"🏃", title:"El camino del movimiento",
+    badge:"🏃", badgeName:"Maestro/a del Movimiento",
+    intro:"El sendero se vuelve más empinado. Para cruzarlo tendrás que usar tus conocimientos sobre movimiento, calentamiento y actividad física.",
+    story:"Moverte no significa únicamente practicar un deporte. También significa encontrar maneras de reducir el tiempo sedentario y disfrutar de actividades que hagan trabajar tu cuerpo.",
+    openPrompts:[
+      {key:"move_favorite", label:"Mi actividad favorita para mantenerme activo/a es..."},
+      {key:"move_more", label:"Una forma en la que puedo moverme más durante el día es..."}
+    ],
+    questions:{
+      4:[
+        {q:"¿Por qué es útil realizar un calentamiento antes de una actividad física?",opts:["Ayuda a preparar progresivamente el cuerpo para el movimiento.","Sirve para terminar la clase antes.","Evita cualquier posibilidad de cansancio.","Hace innecesario beber agua."],ans:0,explain:"El calentamiento aumenta progresivamente la activación corporal y prepara al cuerpo para el movimiento."},
+        {q:"¿Cuál es un ejemplo de actividad física?",opts:["Caminar, correr, bailar o practicar un deporte.","Mirar videos durante varias horas.","Sentarse todo el día.","Dormir durante una clase."],ans:0,explain:"Caminar, correr, bailar y practicar deportes son ejemplos de actividades que implican movimiento corporal."},
+        {q:"¿Qué acción puede reducir el tiempo sedentario?",opts:["Levantarte y moverte durante algunas pausas del día.","Permanecer sentado sin interrupciones.","Evitar cualquier desplazamiento.","Usar una pantalla en cada pausa."],ans:0,explain:"Hacer pausas activas o levantarse con frecuencia permite interrumpir periodos prolongados de estar sentado."},
+        {q:"¿Qué puede ayudar a que la actividad física sea sostenible?",opts:["Elegir actividades que disfrutes y practicarlas de manera regular.","Hacer siempre la actividad más difícil posible.","Moverte solo una vez al mes.","Evitar descansar después de una actividad exigente."],ans:0,explain:"Disfrutar la actividad y practicarla con regularidad puede facilitar que se mantenga como hábito."}
+      ],
+      5:[
+        {q:"Antes de una clase de Educación Física, el docente propone movilidad articular y movimientos progresivos. ¿Cuál es la principal intención?",opts:["Preparar gradualmente al cuerpo para las tareas que vendrán.","Cansar al grupo antes de la actividad principal.","Reemplazar toda la clase.","Evitar aprender nuevas habilidades."],ans:0,explain:"Los movimientos progresivos preparan al cuerpo de manera gradual para las demandas de la actividad."},
+        {q:"Pedro juega videojuegos varias horas sin pausas. ¿Qué cambio podría favorecer una rutina más activa?",opts:["Introducir pausas de movimiento y equilibrar el tiempo de pantalla con actividad física.","Eliminar completamente cualquier descanso.","Jugar más rápido para gastar energía.","Cambiar un videojuego por otro."],ans:0,explain:"Interrumpir periodos largos de pantalla con pausas activas y buscar equilibrio ayuda a incorporar más movimiento."},
+        {q:"Dos estudiantes quieren empezar a hacer actividad física. Uno elige una actividad que disfruta y puede practicar con regularidad; el otro elige una actividad muy exigente que no le gusta. ¿Qué factor puede favorecer más la constancia?",opts:["Elegir una actividad agradable y realista para mantenerla en el tiempo.","Escoger siempre la actividad más difícil.","Evitar cualquier variedad.","Competir con otras personas en cada sesión."],ans:0,explain:"El disfrute y la posibilidad de mantener la práctica son factores útiles para construir constancia."},
+        {q:"¿Cuál combinación representa mejor una sesión de actividad física organizada?",opts:["Preparación o calentamiento, actividad principal y vuelta a la calma.","Actividad intensa directamente y terminar sin transición.","Solo estiramientos durante toda la sesión.","Descanso antes, durante y después sin movimiento."],ans:0,explain:"Una sesión organizada puede incluir una preparación progresiva, una actividad principal y una vuelta a la calma."},
+        {q:"Una estudiante quiere mejorar su capacidad física. ¿Qué enfoque es más razonable?",opts:["Practicar de forma progresiva y regular, respetando las pausas y las señales del cuerpo.","Aumentar todo de golpe sin descansar.","Entrenar únicamente cuando está cansada.","No variar nunca los movimientos."],ans:0,explain:"La progresión, la regularidad, las pausas y la atención a las señales del cuerpo ayudan a practicar de forma responsable."}
+      ]
+    },
+    english:{q:"Choose the best option: 'Before exercise, we ______.'",opts:["stretch and warm up","sleep","drink a pencil","eat a chair"],ans:0,explain:"'Stretch and warm up' are actions related to preparing the body before exercise."}
+  },
+  {
+    id:"rest", icon:"😴", title:"El bosque del descanso",
+    badge:"😴", badgeName:"Guardián/a del Descanso",
+    intro:"Está comenzando a oscurecer. Para atravesar el bosque necesitarás recordar algo importante: descansar también forma parte de cuidar tu cuerpo.",
+    story:"Un cuerpo activo también necesita recuperación. Aquí observarás hábitos de sueño y descanso y decidirás cuáles pueden ayudar a construir una rutina saludable.",
+    openPrompts:[
+      {key:"rest_habit", label:"Un hábito que podría ayudarme a descansar mejor es..."}
+    ],
+    questions:{
+      4:[
+        {q:"¿Cuál hábito puede favorecer una rutina de descanso?",opts:["Mantener horarios de sueño relativamente regulares.","Usar pantallas toda la noche.","Cambiar la hora de dormir cada día sin razón.","Evitar descansar después de estar muy activo."],ans:0,explain:"Una rutina de sueño relativamente regular puede favorecer un descanso adecuado."},
+        {q:"Después de una tarde de actividad física intensa, ¿por qué es importante descansar?",opts:["Porque la recuperación forma parte del cuidado del cuerpo.","Porque descansar reemplaza toda actividad física.","Porque así nunca debemos comer.","Porque el cuerpo deja de necesitar agua."],ans:0,explain:"La recuperación permite que el cuerpo se reponga después de las actividades."},
+        {q:"¿Cuál acción puede ayudar a preparar el cuerpo para dormir?",opts:["Crear una rutina tranquila antes de acostarse.","Comenzar un juego muy estimulante justo al dormir.","Tomar bebidas con cafeína todas las noches.","Cambiar constantemente de horario."],ans:0,explain:"Una rutina tranquila puede ayudar a preparar el cuerpo y la mente para el descanso."},
+        {q:"¿Qué afirmación es más adecuada?",opts:["Dormir y descansar son partes importantes de una vida saludable.","Descansar solo es importante cuando estamos enfermos.","El descanso no importa si hacemos suficiente ejercicio.","Todas las personas necesitan exactamente la misma rutina."],ans:0,explain:"El descanso es un componente importante del bienestar y las rutinas pueden variar entre personas."}
+      ],
+      5:[
+        {q:"Valentina se acuesta cada noche a una hora muy diferente y usa su celular hasta quedarse dormida. ¿Qué cambio podría ayudarle?",opts:["Establecer una rutina más predecible y reducir el uso de pantallas antes de dormir.","Dormir menos para tener más tiempo de estudio.","Usar el celular con más brillo hasta dormirse.","Hacer ejercicio intenso justo antes de acostarse todos los días."],ans:0,explain:"Una rutina más predecible y un periodo de menor estimulación antes de dormir pueden favorecer mejores hábitos de descanso."},
+        {q:"¿Por qué el descanso debe verse como parte de una vida activa y no como lo contrario?",opts:["Porque permite la recuperación necesaria para continuar realizando actividades.","Porque descansar elimina la necesidad de moverse.","Porque las personas activas no necesitan dormir.","Porque descansar significa dejar de cuidarse."],ans:0,explain:"La recuperación es necesaria para seguir participando en actividades y mantener un equilibrio saludable."},
+        {q:"Un estudiante estudia hasta muy tarde todos los días y duerme poco. ¿Qué aspecto debería revisar primero?",opts:["Su organización del tiempo y su rutina de sueño.","La cantidad de videojuegos que juega únicamente el fin de semana.","Su necesidad de eliminar el desayuno.","La idea de no volver a hacer actividad física."],ans:0,explain:"Revisar cómo se organiza el tiempo y cómo construye su rutina de sueño puede ayudar a recuperar un mejor equilibrio."},
+        {q:"¿Cuál escenario muestra mejor un equilibrio entre actividad y recuperación?",opts:["Realizar actividad física, hidratarse, alimentarse y reservar tiempo suficiente para descansar.","Hacer ejercicio sin pausas todos los días.","Evitar cualquier movimiento para no cansarse.","Dormir poco para tener más tiempo para practicar deportes."],ans:0,explain:"Una vida activa necesita combinar movimiento con alimentación, hidratación y recuperación."},
+        {q:"Si una persona nota que llega muy cansada a cada entrenamiento, ¿qué decisión demuestra más autocuidado?",opts:["Revisar su descanso y escuchar las señales de su cuerpo en lugar de ignorarlas.","Aumentar inmediatamente la intensidad.","Eliminar todas las pausas.","Dormir menos para entrenar más."],ans:0,explain:"Prestar atención al cansancio y revisar el descanso es una forma responsable de cuidar el cuerpo."}
+      ]
+    },
+    english:{q:"Choose the correct sentence.",opts:["I sleep well at night.","I sleep water at night.","I run well at night sleep.","I drink sleep every night."],ans:0,explain:"'I sleep well at night' is a correct sentence describing a healthy rest habit."}
+  },
+  {
+    id:"emotions", icon:"❤️", title:"El jardín de las emociones",
+    badge:"❤️", badgeName:"Cuidador/a de las Emociones",
+    intro:"Llegas a un jardín. Aquí descubres que cuidar tu salud también significa reconocer cómo te sientes.",
+    story:"Las emociones forman parte de nuestra vida cotidiana. La meta no es dejar de sentir emociones difíciles, sino aprender formas saludables de expresarlas, regularnos y pedir ayuda cuando la necesitamos.",
+    openPrompts:[
+      {key:"emotion_help", label:"Cuando me siento preocupado/a, triste o enojado/a, una actividad o estrategia que puede ayudarme es..."}
+    ],
+    questions:{
+      4:[
+        {q:"Si estás muy enojado/a, ¿cuál puede ser una respuesta saludable?",opts:["Respirar, tomar un momento y hablar con alguien de confianza.","Golpear a otra persona.","Insultar a quien esté cerca.","Ignorar siempre lo que sientes."],ans:0,explain:"Tomar un momento para calmarnos y hablar con alguien de confianza puede ayudarnos a manejar una emoción intensa sin hacer daño."},
+        {q:"¿Qué significa reconocer una emoción?",opts:["Identificar cómo me siento y ponerle nombre cuando puedo.","Hacer como si nunca sintiera nada.","Decir siempre que estoy feliz.","Evitar hablar con cualquier persona."],ans:0,explain:"Reconocer una emoción implica identificarla y comprender cómo nos estamos sintiendo."},
+        {q:"Cuando algo te preocupa mucho, ¿qué opción puede ser útil?",opts:["Hablar con un adulto o persona de confianza.","Guardarlo siempre y no pedir ayuda.","Descargarlo con un compañero.","Evitar todas las actividades."],ans:0,explain:"Buscar apoyo de una persona de confianza puede ayudar a afrontar una preocupación."},
+        {q:"¿Qué actividad puede ayudar a cuidar el bienestar emocional?",opts:["Hacer actividad física, respirar, conversar o realizar una actividad que disfrutes.","Insultar a otras personas.","No dormir.","Aislarte siempre de quienes te apoyan."],ans:0,explain:"Moverse, respirar, conversar y disfrutar actividades positivas son algunas formas de autocuidado emocional."}
+      ],
+      5:[
+        {q:"Un compañero pierde un partido y está muy frustrado. ¿Qué respuesta muestra mejor manejo emocional?",opts:["Reconocer la frustración, calmarse y pensar qué puede aprender para la próxima.","Burlarse de otros para sentirse mejor.","Golpear el equipo deportivo.","Decir que nunca volverá a intentarlo sin hablar de lo ocurrido."],ans:0,explain:"Reconocer la emoción y usarla para reflexionar puede ayudar a responder de manera más saludable después de una dificultad."},
+        {q:"Dos estudiantes sienten nervios antes de una presentación. ¿Cuál estrategia es más adecuada?",opts:["Respirar con calma, prepararse y hablar con alguien de confianza si lo necesitan.","Decir que sentir nervios está mal y ocultarlo.","Gritarle al compañero.","No presentarse nunca sin intentar comprender la emoción."],ans:0,explain:"Los nervios son una emoción posible; respirar, prepararse y buscar apoyo puede ayudar a manejarlos."},
+        {q:"¿Por qué pedir ayuda puede ser un hábito saludable?",opts:["Porque nadie tiene que resolver todas las situaciones difíciles por sí mismo y el apoyo puede ser útil.","Porque pedir ayuda significa no poder aprender.","Porque solo debemos pedir ayuda cuando estamos contentos.","Porque siempre evita cualquier problema."],ans:0,explain:"Buscar apoyo es una estrategia de cuidado. No significa incapacidad, sino reconocer cuándo necesitamos acompañamiento."},
+        {q:"Una estudiante nota que está irritada después de una jornada muy exigente. ¿Qué podría revisar además de la situación que causó el enojo?",opts:["Su descanso, alimentación, hidratación y necesidad de una pausa.","Solo la conducta de los demás.","La idea de continuar sin descansar.","La cantidad de tareas de sus compañeros."],ans:0,explain:"El bienestar emocional también puede verse influido por necesidades básicas como descanso, alimentación, hidratación y pausas."},
+        {q:"¿Cuál idea integra mejor el bienestar físico y emocional?",opts:["Cuidar el cuerpo, moverse, descansar, reconocer emociones y buscar apoyo cuando es necesario.","Separar completamente las emociones del cuidado de la salud.","Pensar que sentirse triste significa estar enfermo.","Evitar cualquier actividad física cuando hay estrés."],ans:0,explain:"El bienestar es integral: el cuidado físico, el descanso, el movimiento y la salud emocional están relacionados."}
+      ]
+    },
+    english:{q:"Choose the best healthy habit.",opts:["Take care of your emotions.","Take care your run.","Sleep a feelings.","Drink your emotions."],ans:0,explain:"'Take care of your emotions' is the correct phrase and connects with emotional self-care."}
+  },
+  {
+    id:"route", icon:"🌟", title:"Construye tu Ruta Saludable",
+    badge:"🌟", badgeName:"Héroe/Heroína de la Ruta Saludable",
+    intro:"Has llegado a la última estación. Ya conoces diferentes hábitos. Ahora debes convertir tus aprendizajes en una ruta personal.",
+    story:"No todas las personas tienen exactamente la misma rutina. Tu desafío final es pensar en acciones concretas, realistas y personales para cuidar diferentes aspectos de tu bienestar.",
+    openPrompts:[
+      {key:"route_food", label:"🥗 Para cuidar mi alimentación yo voy a..."},
+      {key:"route_water", label:"💧 Para cuidar mi hidratación yo voy a..."},
+      {key:"route_move", label:"🏃 Para mantenerme activo/a yo voy a..."},
+      {key:"route_rest", label:"😴 Para descansar mejor yo voy a..."},
+      {key:"route_emotion", label:"❤️ Para cuidar mis emociones yo voy a..."},
+      {key:"route_commitment", label:"🌟 Mi gran compromiso saludable durante los próximos días es..."}
+    ],
+    questions:{
+      4:[],
+      5:[]
+    },
+    english:null
+  }
+];
+
+const ENGLISH_STATION_INDEX = [0,1,2,3,4];
+let state = {
+  name:"",
+  grade:"",
+  current:0,
+  score:0,
+  total:0,
+  answers:{},
+  openResponses:{},
+  completed:[],
+  badges:[],
+  code:""
+};
+
+const $ = id => document.getElementById(id);
+function save(){ localStorage.setItem("miRutaSaludable", JSON.stringify(state)); }
+function load(){ try { const raw=localStorage.getItem("miRutaSaludable"); return raw?JSON.parse(raw):null; } catch(e){return null;} }
+function escapeHtml(str){
+  return String(str ?? "").replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
+}
+function toast(msg){
+  const el=$("toast"); el.textContent=msg; el.classList.add("show");
+  clearTimeout(window.toastTimer); window.toastTimer=setTimeout(()=>el.classList.remove("show"),3200);
+}
+function showScreen(id){
+  document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
+  $(id).classList.add("active");
+  $("topbar").style.display = id==="adventureScreen" ? "block" : "none";
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+function generateCode(){
+  const grade = state.grade || "X";
+  const initials = (state.name.trim().split(/\s+/).filter(Boolean).slice(0,2).map(x=>x[0].toUpperCase()).join("") || "ST").padEnd(2,"X");
+  const n = Math.floor(10000 + Math.random()*90000);
+  return `RUTA${grade}-${initials}${n}`;
+}
+function resetState(){ localStorage.removeItem("miRutaSaludable"); state={name:"",grade:"",current:0,score:0,total:0,answers:{},openResponses:{},completed:[],badges:[],code:""}; }
+function startNew(){
+  const name=$("studentName").value.trim();
+  const grade=document.querySelector(".grade-btn.selected")?.dataset.grade || "";
+  if(!name){toast("Escribe tu nombre para comenzar."); return;}
+  if(!grade){toast("Selecciona tu grado."); return;}
+  state={name,grade,current:0,score:0,total:STATIONS.slice(0,5).reduce((sum,s)=>sum+s.questions[grade].length+1,0),answers:{},openResponses:{},completed:[],badges:[],code:generateCode()};
+  save(); updateProfile(); renderSidebar(); renderStation();
+  showScreen("adventureScreen");
+}
+function resume(){
+  const saved=load();
+  if(!saved || !saved.name){ toast("No encontramos una aventura guardada."); return; }
+  state=saved; updateProfile(); renderSidebar(); renderStation(); showScreen("adventureScreen");
+}
+function updateProfile(){
+  $("profilePill").textContent=`👤 ${state.name}`;
+  $("gradePill").textContent=`🎒 ${state.grade}.º`;
+  $("scorePill").textContent=`⭐ ${state.score} pts`;
+  $("sideName").textContent=state.name;
+  $("sideGrade").textContent=`Grado ${state.grade}.º`;
+  const denom=Math.max(1, STATIONS.length);
+  const p=Math.round((state.completed.length/denom)*100);
+  $("progressBar").style.width=`${p}%`;
+  $("percentText").textContent=`${p}%`;
+  $("progressText").textContent = state.current<STATIONS.length-1 ? `Misión ${state.current+1} de 6` : `Misión 6 de 6`;
+}
+function renderSidebar(){
+  $("stationList").innerHTML=STATIONS.map((s,i)=>{
+    const done=state.completed.includes(s.id);
+    const active=state.current===i;
+    const locked=i>0 && !state.completed.includes(STATIONS[i-1].id);
+    return `<div class="station-item ${done?"done":""} ${active?"active":""} ${locked?"locked":""}">
+      <div class="station-badge">${locked?"🔒":s.icon}</div>
+      <div><strong>${i+1}. ${escapeHtml(s.title.replace(/^La |El |El |Construye tu /,""))}</strong><div class="tiny muted">${done?"Completada":active?"En curso":"Próxima"}</div></div>
+    </div>`
+  }).join("");
+  $("badgeCount").textContent=`${state.badges.length} / 6`;
+}
+function getAnsweredCount(stationIndex){
+  if(stationIndex>=5) return Object.keys(state.openResponses).filter(k=>k.startsWith("route_")).length;
+  return STATIONS[stationIndex].questions[state.grade].length + 1; 
+}
+function getQuestionKey(si,qi){ return `${STATIONS[si].id}_q${qi}`; }
+function renderStation(){
+  updateProfile(); renderSidebar();
+  const s=STATIONS[state.current];
+  const grade=state.grade;
+  const isFinal = state.current===5;
+  let html=`
+    <div class="mission-head">
+      <div>
+        <div class="mission-tag">MISIÓN ${state.current+1} / 6 · GRADO ${escapeHtml(grade)}.º</div>
+        <h2 style="margin-top:10px">${s.icon} ${escapeHtml(s.title)}</h2>
+      </div>
+      <div class="tiny muted">🏅 ${escapeHtml(s.badgeName)}</div>
+    </div>
+    <div class="story"><strong>📖 Tu historia</strong><p style="margin-bottom:0">${escapeHtml(s.intro)} ${escapeHtml(s.story)}</p></div>
+  `;
+
+  if(!isFinal){
+    const qs=s.questions[grade];
+    qs.forEach((q,qi)=>{
+      const key=getQuestionKey(state.current,qi);
+      const ans=state.answers[key];
+      const answered=ans!==undefined;
+      html += `<div class="question" id="q_${qi}">
+        <div class="question-number">DESAFÍO ${qi+1}</div>
+        <div class="question-title">${escapeHtml(q.q)}</div>
+        <div>`;
+      q.opts.forEach((opt,oi)=>{
+        const classes = answered && oi===q.ans ? "correct" : "";
+        const wrong = answered && oi===ans && ans!==q.ans ? "wrong":"";
+        const disabled = answered ? "disabled" : "";
+        html += `<button class="option ${classes} ${wrong}" ${disabled} data-qi="${qi}" data-oi="${oi}">
+          <span class="letter">${String.fromCharCode(65+oi)}</span><span>${escapeHtml(opt)}</span>
+        </button>`;
+      });
+      html += `</div>`;
+      if(answered){
+        const correct=ans===q.ans;
+        html += `<div class="feedback show ${correct?"good":"bad"}">
+          <strong>${correct?"✅ ¡Muy bien!":"💡 Aún no: ¡aprendiste algo nuevo!"}</strong>
+          <div>${correct ? escapeHtml(q.explain) : `La respuesta correcta es <strong>${escapeHtml(q.opts[q.ans])}</strong>. ${escapeHtml(q.explain)} Tu opción no era la mejor porque ${escapeHtml(whyNot(q,ans))}.`}</div>
+          <div style="margin-top:7px;font-weight:800">${correct ? dynamicGood() : dynamicLearn()}</div>
+          <div class="tiny" style="margin-top:7px">${correct?"La pregunta quedó registrada. Puedes continuar.":"Revisa la explicación y continúa con tu misión."}</div>
+        </div>`;
+      }
+      html += `</div>`;
+    });
+
+    const eq=s.openResponses[0];
+    if(eq){
+      const key=eq.key;
+      html += `<div class="open-response">
+        <label>✍️ Tu respuesta personal
+          <textarea data-open="${key}" placeholder="Escribe con tus propias palabras...">${escapeHtml(state.openResponses[key]||"")}</textarea>
+        </label>
+        <small>Esta respuesta es personal y no se califica automáticamente.</small>
+      </div>`;
+    }
+    if(ENGLISH_STATION_INDEX.includes(state.current) && s.english){
+      const q=s.english, key=`${s.id}_eng`, ans=state.answers[key], answered=ans!==undefined;
+      html += `<div class="question" style="background:#f7fbfd;border-color:#d9e9ef">
+        <div class="question-number">🇺🇸 ENGLISH IN PE</div>
+        <div class="question-title">${escapeHtml(q.q)}</div>`;
+      q.opts.forEach((opt,oi)=>{
+        const classes=answered&&oi===q.ans?"correct":""; const wrong=answered&&oi===ans&&ans!==q.ans?"wrong":"";
+        html += `<button class="option ${classes} ${wrong}" ${answered?"disabled":""} data-eng="1" data-oi="${oi}">
+          <span class="letter">${String.fromCharCode(65+oi)}</span><span>${escapeHtml(opt)}</span>
+        </button>`;
+      });
+      if(answered){
+        const correct=ans===q.ans;
+        html += `<div class="feedback show ${correct?"good":"bad"}"><strong>${correct?"✅ Great job!":"💡 Let’s learn!"}</strong><div>${correct?escapeHtml(q.explain):`The correct answer is <strong>${escapeHtml(q.opts[q.ans])}</strong>. ${escapeHtml(q.explain)}`}</div></div>`;
+      }
+      html += `</div>`;
+    }
+    const objectiveTotal=s.questions[grade].length + 1;
+    const objectiveAnswered=s.questions[grade].filter((q,qi)=>state.answers[getQuestionKey(state.current,qi)]!==undefined).length + (state.answers[`${s.id}_eng`]!==undefined ? 1:0);
+    html += `<div class="station-complete">
+      <strong>🎯 Progreso de esta misión</strong>
+      <p class="tiny muted">Completa las preguntas, revisa las retroalimentaciones y escribe tu reflexión personal.</p>
+      <div class="progress"><div style="width:${Math.min(100,(objectiveAnswered/objectiveTotal)*100)}%"></div></div>
+      <div class="actions">
+        <button class="btn btn-gold" id="completeStationBtn" ${canCompleteStation()?"":"disabled"}>${state.completed.includes(s.id)?"✅ Misión completada":"🏅 Completar misión y desbloquear insignia"}</button>
+      </div>
+    </div>`;
+  } else {
+    s.openPrompts.forEach((p)=>{
+      html += `<div class="open-response">
+        <label>${escapeHtml(p.label)}
+          <textarea data-open="${p.key}" placeholder="Escribe tu compromiso...">${escapeHtml(state.openResponses[p.key]||"")}</textarea>
+        </label>
+      </div>`;
+    });
+    html += `<div class="station-complete">
+      <strong>🌟 Misión final</strong>
+      <p class="muted">Completa todos los espacios para construir tu Ruta Saludable.</p>
+      <div class="actions">
+        <button class="btn btn-gold" id="completeStationBtn" ${canCompleteFinal()?"":"disabled"}>🌟 Completar mi Ruta Saludable</button>
+      </div>
+    </div>`;
+  }
+  $("mainCard").innerHTML=html;
+  bindStationEvents();
+}
+function whyNot(q,ans){
+  const patterns=[
+    "esa opción no respondía directamente al objetivo del hábito saludable.",
+    "esa opción proponía ignorar una necesidad importante del cuerpo.",
+    "esa opción confundía una buena práctica con una acción que no ayuda al bienestar.",
+    "esa opción era menos adecuada porque no consideraba el cuidado integral del cuerpo."
+  ];
+  return patterns[(ans ?? 0)%patterns.length];
+}
+function dynamicGood(){
+  const arr=[
+    "🌟 Tu decisión te ayuda a avanzar por la Ruta Saludable.",
+    "🧭 ¡Excelente elección! Tu aprendizaje abre el siguiente tramo del camino.",
+    "🔥 ¡Vas muy bien! Estás construyendo buenos hábitos paso a paso."
+  ];
+  return arr[Math.floor(Math.random()*arr.length)];
+}
+function dynamicLearn(){
+  const arr=[
+    "🌱 Los exploradores también aprenden de sus errores.",
+    "🧠 Equivocarse aquí es parte del aprendizaje: ahora conoces una nueva forma de cuidar tu bienestar.",
+    "🗺️ La explicación es una nueva pista para continuar tu recorrido."
+  ];
+  return arr[Math.floor(Math.random()*arr.length)];
+}
+function canCompleteStation(){
+  const s=STATIONS[state.current], qs=s.questions[state.grade];
+  const qDone=qs.every((q,qi)=>state.answers[getQuestionKey(state.current,qi)]!==undefined);
+  const eDone=!!state.answers[`${s.id}_eng`];
+  const openKey=s.openPrompts[0]?.key;
+  const openDone=!openKey || (state.openResponses[openKey]||"").trim().length>0;
+  return qDone && eDone && openDone;
+}
+function canCompleteFinal(){
+  return STATIONS[5].openPrompts.every(p=>(state.openResponses[p.key]||"").trim().length>0);
+}
+function bindStationEvents(){
+  document.querySelectorAll(".option").forEach(btn=>{
+    btn.addEventListener("click",()=>{
+      if(btn.disabled)return;
+      const si=state.current, s=STATIONS[si];
+      const qi=Number(btn.dataset.qi), oi=Number(btn.dataset.oi);
+      const key=btn.dataset.eng ? `${s.id}_eng` : getQuestionKey(si,qi);
+      const q=btn.dataset.eng ? s.english : s.questions[state.grade][qi];
+      state.answers[key]=oi;
+      if(oi===q.ans) state.score += 1;
+      save(); updateProfile(); renderStation();
+    });
+  });
+  document.querySelectorAll("textarea[data-open]").forEach(area=>{
+    area.addEventListener("input",()=>{
+      state.openResponses[area.dataset.open]=area.value;
+      save();
+      const btn=$("completeStationBtn"); if(btn){btn.disabled = state.current===5 ? !canCompleteFinal() : !canCompleteStation();}
+    });
+  });
+  const complete=$("completeStationBtn");
+  if(complete) complete.addEventListener("click", completeCurrent);
+}
+function completeCurrent(){
+  const s=STATIONS[state.current];
+  if(state.current<5){
+    if(!canCompleteStation()){toast("Completa toda la misión antes de avanzar.");return;}
+  } else {
+    if(!canCompleteFinal()){toast("Completa todos los compromisos de tu Ruta Saludable.");return;}
+  }
+  if(!state.completed.includes(s.id)) state.completed.push(s.id);
+  if(!state.badges.includes(s.id)) state.badges.push(s.id);
+  save(); renderSidebar();
+  showBadgeModal(s);
+}
+function showBadgeModal(s){
+  $("confirmModal").innerHTML = `<div class="modal-card center">
+    <div class="big-badge" style="font-size:4rem">${s.badge}</div>
+    <h2>🏅 ¡Insignia desbloqueada!</h2>
+    <h3>${escapeHtml(s.badgeName)}</h3>
+    <p>${escapeHtml(badgeMessage(s.id))}</p>
+    <button class="btn btn-primary" id="nextAfterBadge">${state.current<5?"➡️ Continuar mi aventura":"🏆 Ver mi evidencia final"}</button>
+  </div>`;
+  $("confirmModal").classList.add("show");
+  $("nextAfterBadge").onclick=()=>{
+    $("confirmModal").classList.remove("show");
+    if(state.current<5){
+      state.current+=1; save(); renderSidebar(); renderStation();
+    } else {
+      renderFinal();
+      showScreen("finalScreen");
+    }
+  };
+}
+function badgeMessage(id){
+  const msgs={
+    food:"Has aprendido a reconocer decisiones que ayudan a cuidar tu alimentación.",
+    water:"Has descubierto por qué mantenerte hidratado es importante para tu cuerpo.",
+    move:"Has demostrado que sabes cómo incorporar movimiento y actividad física a tu vida.",
+    rest:"Has descubierto que descansar también forma parte de cuidar tu cuerpo.",
+    emotions:"Has aprendido que reconocer y cuidar tus emociones también hace parte de una vida saludable.",
+    route:"Has completado tu recorrido y construido tu propio compromiso saludable."
+  };
+  return msgs[id]||"¡Misión cumplida!";
+}
+function renderFinal(){
+  const grade=escapeHtml(state.grade), name=escapeHtml(state.name);
+  const open = state.openResponses;
+  const badgeCards=STATIONS.map(s=>`<div class="badge-card"><div class="icon">${s.badge}</div><strong>${escapeHtml(s.badgeName)}</strong></div>`).join("");
+  const results=STATIONS.map((s,i)=>{
+    if(i===5) return `<div class="station-result"><strong>🌟 Ruta personal</strong><div class="tiny muted">Completada ✅</div></div>`;
+    const qs=s.questions[state.grade];
+    const qscore=qs.reduce((n,q,qi)=>n+(state.answers[getQuestionKey(i,qi)]===q.ans?1:0),0);
+    const eng=state.answers[`${s.id}_eng`]===s.english?.ans;
+    const total=qs.length+1;
+    return `<div class="station-result"><strong>${s.icon} ${escapeHtml(s.title)}</strong><div class="tiny muted">${qscore+(eng?1:0)} / ${total} puntos</div></div>`;
+  }).join("");
+  const safe = x => escapeHtml((x||"").trim() || "—");
+  $("evidenceCard").innerHTML=`
+    <div class="evidence-head">
+      <div class="evidence-title">
+        <div class="eyebrow hide-on-evidence">🏅 EVIDENCIA FINAL</div>
+        <h1>Mi Ruta Saludable</h1>
+        <p class="subtitle" style="margin:7px 0 0">Misión completada: descubrí cómo cuidar mi cuerpo, mi mente y mis hábitos.</p>
+      </div>
+      <div class="stamp">✅ MISIÓN<br>COMPLETADA</div>
+    </div>
+
+    <div class="evidence-grid">
+      <div class="summary-card">
+        <h3>👤 Datos del aventurero/a</h3>
+        <p><strong>Nombre:</strong> ${name}</p>
+        <p><strong>Grado:</strong> ${grade}.º</p>
+        <p><strong>Fecha:</strong> ${new Date().toLocaleDateString("es-CO")}</p>
+        <p><strong>Código de evidencia:</strong><br><span class="code">${escapeHtml(state.code)}</span></p>
+      </div>
+      <div class="summary-card">
+        <h3>⭐ Resultado</h3>
+        <p style="font-size:2rem;margin:8px 0;font-weight:900;color:var(--primary-dark)">${state.score} puntos</p>
+        <p class="muted">Las respuestas abiertas no se califican automáticamente.</p>
+        <p><strong>6/6 estaciones completadas</strong></p>
+      </div>
+    </div>
+
+    <div class="summary-card" style="margin-top:18px">
+      <h3>🗺️ Mis estaciones</h3>
+      <div class="station-results">${results}</div>
+    </div>
+
+    <div class="summary-card" style="margin-top:18px">
+      <h3>🏅 Mis insignias</h3>
+      <div class="badges">${badgeCards}</div>
+    </div>
+
+    <div class="summary-card" style="margin-top:18px">
+      <h3>🌱 Mi Ruta Personal</h3>
+      <div class="personal-route">
+        <div class="personal-item"><strong>🥗 Alimentación</strong>${safe(open.route_food || open.food_like)}</div>
+        <div class="personal-item"><strong>💧 Hidratación</strong>${safe(open.route_water || open.water_idea)}</div>
+        <div class="personal-item"><strong>🏃 Movimiento</strong>${safe(open.route_move || open.move_more)}</div>
+        <div class="personal-item"><strong>😴 Descanso</strong>${safe(open.route_rest || open.rest_habit)}</div>
+        <div class="personal-item"><strong>❤️ Emociones</strong>${safe(open.route_emotion || open.emotion_help)}</div>
+      </div>
+      <div class="commitment"><strong>🌟 Mi gran compromiso saludable</strong><br>${safe(open.route_commitment)}</div>
+    </div>
+
+    <div class="summary-card" style="margin-top:18px;background:#f3faf4">
+      <h3>🎉 ¡Has completado tu Ruta Saludable!</h3>
+      <p>Has recorrido las estaciones, aprendido con tus respuestas y creado compromisos personales para tu bienestar.</p>
+      <p style="margin-bottom:0"><strong>📸 Toma un pantallazo de esta pantalla y envíalo como evidencia de la actividad.</strong></p>
+    </div>
+
+    <div class="evidence-actions hide-on-evidence">
+      <button class="btn btn-primary" id="evidenceModeBtn">📸 Ver solo mi evidencia</button>
+      <button class="btn btn-secondary" id="backRouteBtn">🗺️ Volver a la ruta</button>
+      <button class="btn btn-gold" onclick="window.print()">🖨️ Imprimir / Guardar PDF</button>
+      <button class="btn btn-danger" id="resetFinalBtn">🔄 Reiniciar</button>
+    </div>`;
+  $("evidenceModeBtn").onclick=()=>{
+    $("app").classList.add("only-evidence");
+    $("evidenceModeBtn").textContent="↩️ Volver a vista completa";
+    $("evidenceModeBtn").onclick=()=>{$("app").classList.remove("only-evidence"); renderFinal();}
+  };
+  $("backRouteBtn").onclick=()=>{state.current=5;save();renderStation();showScreen("adventureScreen");};
+  $("resetFinalBtn").onclick=openReset;
+}
+function openReset(){ $("confirmModal").innerHTML=`<div class="modal-card"><h2>¿Reiniciar la aventura?</h2><p>Se borrará el progreso guardado en este dispositivo y comenzarás de nuevo.</p><div class="actions"><button class="btn btn-secondary" id="cancelReset2">Cancelar</button><button class="btn btn-danger" id="confirmReset2">Sí, reiniciar</button></div></div>`; $("confirmModal").classList.add("show"); $("cancelReset2").onclick=()=>$("confirmModal").classList.remove("show"); $("confirmReset2").onclick=()=>{ $("confirmModal").classList.remove("show"); resetState(); location.reload();}; }
+
+document.querySelectorAll(".grade-btn").forEach(btn=>btn.addEventListener("click",()=>{
+  document.querySelectorAll(".grade-btn").forEach(b=>b.classList.remove("selected")); btn.classList.add("selected");
+}));
+$("startBtn").onclick=startNew;
+const saved=load();
+if(saved && saved.name){
+  $("resumeBtn").style.display="inline-block";
+}
+$("resumeBtn").onclick=resume;
+$("confirmModal").addEventListener("click",(e)=>{if(e.target.id==="confirmModal")$("confirmModal").classList.remove("show");});
+
+// Restore selected grade on start if saved
+if(saved?.grade){
+  const b=document.querySelector(`.grade-btn[data-grade="${saved.grade}"]`);
+  if(b)b.classList.add("selected");
+}
+</script>
+</body>
+</html>
